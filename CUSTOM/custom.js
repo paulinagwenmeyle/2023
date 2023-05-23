@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // var texts = ['text/text1.txt', 'text/text1.txt', 'text/text2.txt', 'text/text2.txt']; // Add your text file URLs here
 
 
-fetch('/content.json') // replace this with the path to your JSON file
+fetch('/2023/content.json') // replace this with the path to your JSON file
     .then(response => response.json())
     .then(data => {
         content = data;
