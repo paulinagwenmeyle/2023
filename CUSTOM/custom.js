@@ -16,11 +16,17 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
- fetch('2023/content.json') // replace this with the path to your JSON file
-     .then(response => response.json())
-     .then(data => {
-         content = data;
-     });
+fetch('/content.json')
+    .then(response => {
+        if (!response.ok) { throw new Error('HTTP error ' + response.status); }
+        return response.json();
+    })
+    .then(data => {
+        content = data;
+    })
+    .catch(function() {
+        console.log('Failed to fetch content.json. Please check the file location and its content.');
+    });
 
 // fetch('/content.yaml')
 //        .then(response => response.text())
