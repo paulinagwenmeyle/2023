@@ -1,5 +1,6 @@
 console.log('hi custom.js');
 
+let content;
 
 document.addEventListener('DOMContentLoaded', function() {
       fetch('text/about-me.txt')
