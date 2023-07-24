@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
- fetch('/content.json') // replace this with the path to your JSON file
+ fetch('2023/content.json') // replace this with the path to your JSON file
      .then(response => response.json())
      .then(data => {
          content = data;
