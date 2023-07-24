@@ -1,0 +1,89 @@
+- image: images/1.png
+  text: text/intro.txt
+
+- image: images/2.png
+  text: text/ribtop001.txt
+
+- image: images/3.png
+  text: text/ribtop001.txt
+
+- image: images/4.png
+  text: text/ribtop001.txt
+
+- image: images/5.png
+  text: text/ribtop001.txt
+
+- image: images/6.png
+  text: text/ribtop001.txt
+
+- image: images/7.png
+  text: text/high-grounds.txt
+
+- image: images/8.png
+  text: text/high-grounds-look-1.txt
+
+- image: images/9.png
+  text: text/look-2.txt
+
+- image: images/9a.png
+  text: text/look-2.txt
+
+- image: images/11.png
+  text: text/look-3.txt
+
+- image: images/12.png
+  text: text/look-3.txt
+
+- image: images/13.png
+  text: text/look-4.txt
+
+- image: images/13a.png
+  text: text/look-4.txt
+
+- image: images/14.png
+  text: text/look-5.txt
+
+- image: images/14a.png
+  text: text/look-5.txt
+
+- image: images/15.png
+  text: text/look-5.txt
+
+- image: images/15a.png
+  text: text/look-6.txt
+
+- image: images/16.mp4
+  text: text/empty.txt
+
+- image: images/16a.mp4
+  text: text/empty.txt
+
+- image: images/18.png
+  text: text/chapter-1.txt
+
+- image: images/19.png
+  text: text/chapter-1.txt
+
+- image: images/20.png
+  text: text/chapter-2.txt
+
+- image: images/20a.png
+  text: text/chapter-2.txt
+
+- image: images/21.png
+  text: text/chapter-2.txt
+
+- image: images/19a.png
+  text: text/chapter-3.txt
+
+- image: images/19b.png
+  text: text/chapter-3.txt
+
+- image: images/22.png
+  text: text/handknit.txt
+
+- image: images/23.png
+  text: text/handknit.txt
+  
+- image: images/24.png
+  text: text/handknit.txt
