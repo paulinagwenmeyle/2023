@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-fetch('main/2023/content.json')
+fetch('/content.json')
     .then(response => {
         if (!response.ok) { throw new Error('HTTP error ' + response.status); }
         return response.json();
