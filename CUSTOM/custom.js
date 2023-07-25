@@ -3,12 +3,12 @@ console.log('hi custom.js');
 let content;
 
 document.addEventListener('DOMContentLoaded', function() {
-      fetch('text/about-me.txt')
+      fetch('text/aboutme.txt')
           .then(response => response.text())
           .then(data => {
               document.getElementById('about-me').innerHTML = data;
           });
-      fetch('text/intro.txt')
+      fetch('text/empty.txt')
       .then(response => response.text())
       .then(data => {
           document.getElementById('project-text').innerHTML = data;
