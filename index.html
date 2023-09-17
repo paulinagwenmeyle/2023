@@ -36,9 +36,6 @@
     <div id="project-column" class="w-layout-grid grid-2">
       <p id="project-text" class="project-text"></p>
       <select id="dropdown-menu">
-        <option value="0">Select Size</option>
-        <option value="1">Small</option>
-        <option value="2">Medium</option>
       </select>
       <div id="media-status" class="media-status"></div>
     </div>
@@ -159,6 +156,12 @@
      * NAVIGATION CAROUSEL (both next and previous).
      */
     function navigateCarousel(event) {
+      const shopBadge = document.querySelector('.shop-badge');
+      const shopLink = document.getElementById('shop-link');
+      const dropDownMenu = document.getElementById('dropdown-menu');
+      dropDownMenu.style.visibility = 'hidden';
+      shopBadge.style.visibility = 'hidden';
+
       currentIndex = event.target.id === 'next-button' ? currentIndex + 1 : currentIndex - 1;
 
       if (currentIndex >= treeDynamic.length) currentIndex = 0;
@@ -168,10 +171,7 @@
         document.getElementById('carousel').src = treeDynamic[currentIndex].url;
       });
 
-      const shopBadge = document.querySelector('.shop-badge');
-      const shopLink = document.getElementById('shop-link');
-
-      const dropDownMenu = document.getElementById('dropdown-menu');
+      
 
       dropDownMenu.innerHTML = ''; // Clear existing options
 
@@ -217,9 +217,6 @@
             shopBadge.style.visibility = 'hidden';
           }
         });
-
-
-
       } else {
         shopBadge.style.visibility = 'hidden';
         dropDownMenu.style.visibility = 'hidden';
