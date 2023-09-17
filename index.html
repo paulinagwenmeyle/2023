@@ -26,15 +26,20 @@
         <div class="col-left-arrow w-col w-col-6">
           <div class="left-arrow">←</div>
         </div>
-          <div class="col-right-arrow w-col w-col-6">
-            <div class="right-arrow">→</div>
-          </div>
+        <div class="col-right-arrow w-col w-col-6">
+          <div class="right-arrow">→</div>
         </div>
+      </div>
 
     </div>
 
     <div id="project-column" class="w-layout-grid grid-2">
       <p id="project-text" class="project-text"></p>
+      <select id="dropdown-menu">
+        <option value="0">Select Size</option>
+        <option value="1">Small</option>
+        <option value="2">Medium</option>
+      </select>
       <div id="media-status" class="media-status"></div>
     </div>
 
@@ -84,7 +89,17 @@
           'description': record.get('Description'),
           'url': url,
           'online-shop': record.get('Online-Shop'),
-          'online-shop-link': record.get('Online-Shop-Link')
+
+          'opt-title-1': record.get('Option-Title-1'),
+          'opt-link-1': record.get('Option-Link-1'),
+          'opt-title-2': record.get('Option-Title-2'),
+          'opt-link-2': record.get('Option-Link-2'),
+          'opt-title-3': record.get('Option-Title-3'),
+          'opt-link-3': record.get('Option-Link-3'),
+          'opt-title-4': record.get('Option-Title-4'),
+          'opt-link-4': record.get('Option-Link-4'),
+          'opt-title-5': record.get('Option-Title-5'),
+          'opt-link-5': record.get('Option-Link-5')
         });
       });
       fetchNextPage();
@@ -129,7 +144,9 @@
       }
     }
 
-    // Carousel navigation
+    /**
+     * Carousel navigation elements
+     */
     let currentIndex = 0;
 
     document.getElementById('next-button').addEventListener('click', navigateCarousel);
@@ -139,7 +156,7 @@
     updateMediaStatusVisibility();
 
     /**
-     * Handles carousel navigation (both next and previous).
+     * NAVIGATION CAROUSEL (both next and previous).
      */
     function navigateCarousel(event) {
       currentIndex = event.target.id === 'next-button' ? currentIndex + 1 : currentIndex - 1;
@@ -151,18 +168,63 @@
         document.getElementById('carousel').src = treeDynamic[currentIndex].url;
       });
 
-      let shopBadge = document.querySelector('.shop-badge');
-      let shopLink = document.getElementById('shop-link'); // Get the <a> element
+      const shopBadge = document.querySelector('.shop-badge');
+      const shopLink = document.getElementById('shop-link');
 
-      //
-      console.log(treeDynamic[currentIndex]['online-shop-link'])
+      const dropDownMenu = document.getElementById('dropdown-menu');
 
-      if(treeDynamic[currentIndex]['online-shop']) {
-        shopBadge.style.visibility = 'visible';
-        shopLink.href = treeDynamic[currentIndex]['online-shop-link']; // Set the href attribute
+      dropDownMenu.innerHTML = ''; // Clear existing options
+
+      if (treeDynamic[currentIndex]['online-shop']) {
+        if (treeDynamic[currentIndex]['opt-title-1']) {
+          dropDownMenu.style.visibility = 'visible';
+          const option = document.createElement('option');
+          option.value = 0;
+          option.textContent = 'Select Size';
+          dropDownMenu.appendChild(option);
+
+          for (let index = 1; index < 6; index++) {
+            const titlePropertyName = 'opt-title-' + index;
+            const linkPropertyName = 'opt-link-' + index;
+            const optionTitle = treeDynamic[currentIndex][titlePropertyName];
+            const optionLink = treeDynamic[currentIndex][linkPropertyName];
+
+            if (optionTitle && optionTitle.trim() !== "") { // Check if the title is not empty or just whitespace
+              const option = document.createElement('option');
+              option.value = optionLink; // Set the value to the link property
+              option.textContent = optionTitle;
+              dropDownMenu.appendChild(option);
+            }
+          }
+        }
+
+        // Add an event listener to the dropdown menu for change events
+        dropDownMenu.addEventListener('change', function () {
+          const selectedValue = this.value;
+          if (selectedValue !== '0') { 
+            shopBadge.style.visibility = 'visible';
+            console.log(selectedValue)
+            shopLink.href = selectedValue;
+          } else {
+            shopLink.href = '#';
+            shopBadge.style.visibility = 'hidden';
+          }
+
+          // Check if the selected value is null and log a message
+          if (selectedValue == "undefined") {
+            console.log('Selected value is null');
+            shopLink.href = '#';
+            shopBadge.style.visibility = 'hidden';
+          }
+        });
+
+
+
       } else {
         shopBadge.style.visibility = 'hidden';
+        dropDownMenu.style.visibility = 'hidden';
       }
+
 
       document.getElementById('media-status').innerText = `${currentIndex + 1} ––– ${treeDynamic.length}`;
 
@@ -203,29 +265,29 @@
 
     /**
      * Arrow display on hover
-     */    
+     */
 
-    $(document).ready(function() {
+    $(document).ready(function () {
       $(".previous").hover(
-          function() {
-              // on hover
-              $(".left-arrow").css("opacity", "1");
-          },
-          function() {
-              // on hover out
-              $(".left-arrow").css("opacity", "0");
-          }
+        function () {
+          // on hover
+          $(".left-arrow").css("opacity", "1");
+        },
+        function () {
+          // on hover out
+          $(".left-arrow").css("opacity", "0");
+        }
       );
 
       $(".next").hover(
-          function() {
-              // on hover
-              $(".right-arrow").css("opacity", "1");
-          },
-          function() {
-              // on hover out
-              $(".right-arrow").css("opacity", "0");
-          }
+        function () {
+          // on hover
+          $(".right-arrow").css("opacity", "1");
+        },
+        function () {
+          // on hover out
+          $(".right-arrow").css("opacity", "0");
+        }
       );
     });
 
