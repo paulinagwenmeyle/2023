@@ -1,294 +1,540 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>paulina gwen meyle</title>
-  <meta content="width=device-width, initial-scale=1" name="viewport">
-  <link href="css/normalize.css" rel="stylesheet" type="text/css">
-  <link href="css/yeswoojazz.css" rel="stylesheet" type="text/css">
-  <link href="css/favicon.png" rel="shortcut icon" type="image/x-icon">
-  <link href="css/webclip.png" rel="apple-touch-icon">
-  <script src="build/airtable.browser.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Media Gallery</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+    <style>
+        /* Keep Code 2's CSS styles unchanged */
+        body {
+            background-color: white;
+            font-family: 'Inter Neue', sans-serif;
+            margin: 0;
+            padding: 2em;
+        }
+
+        .media-ascii {
+            margin: 10em auto;
+            position: relative;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        .ascii-output {
+            position: relative;
+            margin: 0;
+            white-space: pre;
+            font-family: monospace;
+            line-height: 1;
+            z-index: 2;
+            pointer-events: none;
+            transition: all 0.1s;
+        }
+
+        .media-element {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+
+        .ascii-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 3;
+            display: flex;
+            gap: 5px;
+        }
+
+        .video-controls button {
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #gui-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+        }
+    </style>
 </head>
+<body>
+    <div class="media-ascii" data-type="image" data-src="/1.jpg"></div>
+    <div class="media-ascii" data-type="video" data-src="/3.mp4"></div>
+    <div class="media-ascii" data-type="image" data-src="/2.png"></div>
+    <div class="media-ascii" data-type="video" data-src="/4.mov"></div>
 
-<body class="body">
+    <div id="gui-container"></div>
 
-  <div class="w-layout-grid grid">
+    <script>
+/********************
+ * PRESETS CONFIG   *
+ ********************/
+const presets = {
+    Default: {
+        charSet: ' .:-=+*#%@',
+        fontSizeMin: 12,
+        fontSizeMax: 12,
+        contrastMin: 0.5,
+        contrastMax: 2,
+        brightnessMin: 0.5,
+        brightnessMax: -0.5
+    },
+    Blocks: {
+        charSet: ' ░▒▓█',
+        fontSizeMin: 12,
+        fontSizeMax: 12,
+        contrastMin: 0.8,
+        contrastMax: 1.5,
+        brightnessMin: 0.5,
+        brightnessMax: -0.5
+    },
+    Minimal: {
+        charSet: ' ·:+=%$#',
+        fontSizeMin: 12,
+        fontSizeMax: 12,
+        contrastMin: 0.6,
+        contrastMax: 1.8,
+        brightnessMin: 0.5,
+        brightnessMax: -0.5
+    },
+    Matrix: {
+        charSet: ' meyle',
+        fontSizeMin: 10,
+        fontSizeMax: 10,
+        contrastMin: 1.5,
+        contrastMax: 2,
+        brightnessMin: 0.5,
+        brightnessMax: -0.5
+    }
+};
 
-    <div id="div-trigger" class="div-trigger">
-      <img src="" loading="eager" width="630" id="carousel" alt="" class="image-carousel">
-      <div id="next-button" class="next"></div>
-      <div id="previous-button" class="previous"></div>
-      <div class="trigger-arrows w-row">
-        <div class="col-left-arrow w-col w-col-6">
-          <div class="left-arrow">←</div>
-        </div>
-        <div class="col-right-arrow w-col w-col-6">
-          <div class="right-arrow">→</div>
-        </div>
-      </div>
+/********************
+ * GLOBAL SETTINGS  *
+ ********************/
+const globalSettings = {
+    // Preset control
+    preset: 'Default',
+    
+    // Scroll mapping
+    scrollMapping: 'Linear',
+    scrollMappingModes: ['Linear', 'Mirrored'],
+    
+    // Range controls
+    fontSizeMin: 12, fontSizeMax: 12,
+    contrastMin: 0.5, contrastMax: 2,
+    brightnessMin: -0.5, brightnessMax: 0.5,
+    
+    // Style controls
+    charSet: ' .:-=+*#%@', 
+    color: false,
+    colorPalette: 'Full Color',
+    asciiFontColor: '#ffffff',
+    asciiBackgroundColor: '#000000',
+    asciiBackgroundOpacity: 0,
+    fontFamily: 'monospace',
+    
+    // Media controls
+    showMedia: true,
+    containerWidth: 800, 
+    containerHeight: 600,
+    invert: false,
+    videoSpeed: 1, 
+    loopMedia: true
+};
 
-    </div>
-
-    <div id="project-column" class="w-layout-grid grid-2">
-      <p id="project-text" class="project-text"></p>
-      <select id="dropdown-menu" style="visibility: hidden;">
-      </select>
-      <div id="media-status" class="media-status"></div>
-    </div>
-
-    <p id="about-me" class="about-me">Paulina Gwen Meyle</p>
-  </div>
-
-  <a href="#" id="shop-link" target="_blank">
-    <div class="shop-badge">
-      <p class="shop-cta">SHOP ONLINE</p>
-    </div>
-  </a>
-
-  <script>
-
-    // Log to verify script load
-    console.log('hello world');
-
-    // Airtable configuration and initialization
-    let Airtable = require('airtable');
-    Airtable.configure({
-      endpointUrl: 'https://api.airtable.com',
-      apiKey: 'pat6fV60c1TdLfwre.69c45f42f1023833fcc22d44893f03e21c7c5da8d276ac9a9a94ba99d33a13a0' // Ensure to keep this secure in production
+/********************
+ * COLOR PALETTES   *
+ ********************/
+function generateGreyscalePalette(levels) {
+    return Array.from({length: levels}, (_,i) => {
+        const val = Math.round((i/(levels-1))*255);
+        return [val, val, val];
     });
-    let base = Airtable.base('appbf4vuySuroMmju');
+}
 
-    let treeDynamic = [];
-    let treeStatic = [];
+function generateColorPalette(levels) {
+    const step = 256/(levels-1);
+    return Array.from({length: levels}, (_,r) =>
+        Array.from({length: levels}, (_,g) =>
+            Array.from({length: levels}, (_,b) => [
+                Math.round(r*step), Math.round(g*step), Math.round(b*step)
+            ])).flat()).flat();
+}
 
-    // Fetch dynamic portfolio data from Airtable
-    base('portfolio').select({
-      view: "Grid view"
-    }).eachPage(fetchDynamicData, handleAirtableError);
+const colorPalettes = {
+    'Monochrome': [[0,0,0],[255,255,255]],
+    'Grey2Bit': generateGreyscalePalette(4),
+    'Grey4Bit': generateGreyscalePalette(16),
+    'Grey8Bit': generateGreyscalePalette(256),
+    'Color3Bit': generateColorPalette(8),
+    'Color4Bit': generateColorPalette(16),
+    'Full Color': null
+};
 
-    // Fetch static content data from Airtable
-    base('static').select({
-      view: "Grid view"
-    }).eachPage(fetchStaticData, handleAirtableError);
+const fontOptions = ['monospace','Courier New','Lucida Console','Monaco','Consolas'];
 
-    /**
-     * Fetches dynamic data from Airtable and updates treeDynamic array.
-     */
-    function fetchDynamicData(records, fetchNextPage) {
-      records.forEach(record => {
-        let url = record.get('Media')[0].url;
-        treeDynamic.push({
-          'order': record.get('Order'),
-          'description': record.get('Description'),
-          'url': url,
-          'online-shop': record.get('Online-Shop'),
+/********************
+ * MEDIA ASCII CLASS*
+ ********************/
 
-          'opt-title-1': record.get('Option-Title-1'),
-          'opt-link-1': record.get('Option-Link-1'),
-          'opt-title-2': record.get('Option-Title-2'),
-          'opt-link-2': record.get('Option-Link-2'),
-          'opt-title-3': record.get('Option-Title-3'),
-          'opt-link-3': record.get('Option-Link-3'),
-          'opt-title-4': record.get('Option-Title-4'),
-          'opt-link-4': record.get('Option-Link-4'),
-          'opt-title-5': record.get('Option-Title-5'),
-          'opt-link-5': record.get('Option-Link-5')
+class MediaASCII {
+    static instances = [];
+    static rangedParams = ['fontSize', 'contrast', 'brightness'];
+    
+    constructor(containerElement) {
+        this.container = containerElement;
+        this.type = containerElement.dataset.type;
+        this.src = containerElement.dataset.src;
+        this.isVideo = this.type === 'video';
+        this.currentSettings = {
+            fontSize: globalSettings.fontSizeMin,
+            contrast: globalSettings.contrastMin,
+            brightness: globalSettings.brightnessMin
+        };
+        this.rafId = null;
+        this.init();
+        MediaASCII.instances.push(this);
+    }
+
+    init() {
+        this.createElements();
+        this.setupMediaHandlers();
+        this.addScrollListener();
+        this.updateScrollValues();
+        this.updateSettings();
+        this.resizeContainer(true);
+        if(this.isVideo) this.setupVideoControls();
+    }
+
+    createElements() {
+        this.asciiOutput = document.createElement('pre');
+        this.asciiOutput.className = 'ascii-output';
+        this.media = this.isVideo ? document.createElement('video') : document.createElement('img');
+        this.media.className = 'media-element';
+        this.media.src = this.src;
+        this.asciiBackground = document.createElement('div');
+        this.asciiBackground.className = 'ascii-bg';
+        this.container.append(this.asciiBackground, this.asciiOutput, this.media);
+        if(this.isVideo) this.media.muted = true;
+    }
+
+    setupVideoControls() {
+        const controls = document.createElement('div');
+        controls.className = 'video-controls';
+        controls.innerHTML = `<button class="play-btn">▶</button><button class="mute-btn">🔊</button>`;
+        this.container.append(controls);
+        controls.querySelector('.play-btn').addEventListener('click', () => 
+            this.media.paused ? this.media.play() : this.media.pause());
+        controls.querySelector('.mute-btn').addEventListener('click', () => {
+            this.media.muted = !this.media.muted;
+            controls.querySelector('.mute-btn').textContent = this.media.muted ? '🔇' : '🔊';
         });
-      });
-      fetchNextPage();
-      console.log('treeDynamic:', treeDynamic[1]);
     }
 
-    /**
-     * Fetches static data from Airtable and updates treeStatic array.
-     */
-    function fetchStaticData(records, fetchNextPage) {
-      records.forEach(record => {
-        let url = record.get('Media')[0].url;
-        treeStatic.push({
-          'about': record.get('About'),
-          'url': url
-        });
-      });
-      fetchNextPage();
-      console.log('treeStatic:', treeStatic[1]);
-      updateStaticContent();
+    setupMediaHandlers() {
+        const loadHandler = () => {
+            this.resizeContainer(true);
+            this.renderFrame();
+            if(this.isVideo) this.media.play().catch(() => {});
+        };
+
+        if(this.isVideo) {
+            this.media.addEventListener('loadeddata', loadHandler);
+            this.media.addEventListener('play', () => this.startVideoRendering());
+            this.media.addEventListener('pause', () => this.stopVideoRendering());
+        } else {
+            this.media.addEventListener('load', loadHandler);
+        }
     }
 
-    /**
-     * Handles potential errors when fetching data from Airtable.
-     */
-    function handleAirtableError(err) {
-      if (err) {
-        console.error("Error fetching data from Airtable:", err);
-        return;
-      }
-    }
-
-    /**
-     * Updates the 'about-me' section and carousel with static content.
-     */
-    function updateStaticContent() {
-      if (treeStatic[0]) {
-        document.getElementById('about-me').innerHTML = treeStatic[0].about || "";
-        document.getElementById('carousel').src = treeStatic[0].url;
-      } else {
-        console.warn("Static data is not available (from Airtable).");
-      }
-    }
-
-    /**
-     * Carousel navigation elements
-     */
-    let currentIndex = 0;
-
-    document.getElementById('next-button').addEventListener('click', navigateCarousel);
-    document.getElementById('previous-button').addEventListener('click', navigateCarousel);
-
-    // Initialize visibility status for media
-    updateMediaStatusVisibility();
-
-    /**
-     * NAVIGATION CAROUSEL (both next and previous).
-     */
-    function navigateCarousel(event) {
-      const shopBadge = document.querySelector('.shop-badge');
-      const shopLink = document.getElementById('shop-link');
-      const dropDownMenu = document.getElementById('dropdown-menu');
-      dropDownMenu.style.visibility = 'hidden';
-      shopBadge.style.visibility = 'hidden';
-
-      currentIndex = event.target.id === 'next-button' ? currentIndex + 1 : currentIndex - 1;
-
-      if (currentIndex >= treeDynamic.length) currentIndex = 0;
-      if (currentIndex < 0) currentIndex = treeDynamic.length - 1;
-
-      updateText(treeDynamic[currentIndex].url, treeDynamic[currentIndex].description, () => {
-        document.getElementById('carousel').src = treeDynamic[currentIndex].url;
-      });
-
-      
-
-      dropDownMenu.innerHTML = ''; // Clear existing options
-
-      if (treeDynamic[currentIndex]['online-shop']) {
-        if (treeDynamic[currentIndex]['opt-title-1']) {
-          dropDownMenu.style.visibility = 'visible';
-          const option = document.createElement('option');
-          option.value = 0;
-          option.textContent = 'Select Size';
-          dropDownMenu.appendChild(option);
-
-          for (let index = 1; index < 6; index++) {
-            const titlePropertyName = 'opt-title-' + index;
-            const linkPropertyName = 'opt-link-' + index;
-            const optionTitle = treeDynamic[currentIndex][titlePropertyName];
-            const optionLink = treeDynamic[currentIndex][linkPropertyName];
-
-            if (optionTitle && optionTitle.trim() !== "") { // Check if the title is not empty or just whitespace
-              const option = document.createElement('option');
-              option.value = optionLink; // Set the value to the link property
-              option.textContent = optionTitle;
-              dropDownMenu.appendChild(option);
+    startVideoRendering() {
+        const renderLoop = () => {
+            if(!this.media.paused && !this.media.ended) {
+                this.updateScrollValues();
+                this.resizeContainer();
+                this.renderFrame();
+                this.rafId = requestAnimationFrame(renderLoop);
             }
-          }
+        };
+        renderLoop();
+    }
+
+    stopVideoRendering() {
+        if(this.rafId) cancelAnimationFrame(this.rafId);
+    }
+
+    addScrollListener() {
+        const scrollHandler = MediaASCII.throttle(() => {
+            this.updateScrollValues();
+            this.resizeContainer();
+            if(!this.isVideo) this.renderFrame();
+        }, 50);
+        window.addEventListener('scroll', scrollHandler);
+        window.addEventListener('resize', scrollHandler);
+    }
+
+    updateScrollValues() {
+        const rect = this.container.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const elementCenterY = rect.top + (rect.height / 2);
+        let scrollProgress;
+
+        if(globalSettings.scrollMapping === 'Mirrored') {
+            const viewportCenter = viewportHeight / 2;
+            const distanceFromCenter = Math.abs(elementCenterY - viewportCenter);
+            scrollProgress = 1 - Math.min(1, distanceFromCenter / (viewportHeight * 0.8));
+        } else {
+            scrollProgress = Math.min(1, Math.max(0, elementCenterY / (viewportHeight * 0.8)));
         }
 
-        // Add an event listener to the dropdown menu for change events
-        dropDownMenu.addEventListener('change', function () {
-          const selectedValue = this.value;
-          if (selectedValue !== '0') { 
-            shopBadge.style.visibility = 'visible';
-            console.log(selectedValue)
-            shopLink.href = selectedValue;
-          } else {
-            shopLink.href = '#';
-            shopBadge.style.visibility = 'hidden';
-          }
-
-          // Check if the selected value is null and log a message
-          if (selectedValue == "undefined") {
-            console.log('Selected value is null');
-            shopLink.href = '#';
-            shopBadge.style.visibility = 'hidden';
-          }
+        MediaASCII.rangedParams.forEach(param => {
+            this.currentSettings[param] = MediaASCII.lerp(
+                globalSettings[`${param}Min`],
+                globalSettings[`${param}Max`],
+                globalSettings.scrollMapping === 'Mirrored' ? scrollProgress : 1 - scrollProgress
+            );
         });
-      } else {
-        shopBadge.style.visibility = 'hidden';
-        dropDownMenu.style.visibility = 'hidden';
-      }
-
-
-      document.getElementById('media-status').innerText = `${currentIndex + 1} ––– ${treeDynamic.length}`;
-
-      updateMediaStatusVisibility();
-      preloadAdjacentImages();
     }
 
-    /**
-     * Updates project text after ensuring the image is loaded.
-     */
-    function updateText(imgSrc, text, callback) {
-      const img = new Image();
-      img.src = imgSrc;
-
-      img.onload = () => {
-        document.getElementById('project-text').innerHTML = text || "";
-        callback();
-      };
-    }
-
-    /**
-     * Toggles media status visibility based on currentIndex.
-     */
-    function updateMediaStatusVisibility() {
-      var mediaStatusDiv = document.getElementById('media-status');
-      mediaStatusDiv.style.display = currentIndex === 0 ? 'none' : 'block';
-    }
-
-    /**
-     * Preloads adjacent images to ensure smooth carousel navigation.
-     */
-    function preloadAdjacentImages() {
-      for (let i = 1; i <= 3; i++) {
-        if (currentIndex + i < treeDynamic.length) new Image().src = treeDynamic[currentIndex + i].url;
-        if (currentIndex - i >= 0) new Image().src = treeDynamic[currentIndex - i].url;
-      }
-    }
-
-    /**
-     * Arrow display on hover
-     */
-
-    $(document).ready(function () {
-      $(".previous").hover(
-        function () {
-          // on hover
-          $(".left-arrow").css("opacity", "1");
-        },
-        function () {
-          // on hover out
-          $(".left-arrow").css("opacity", "0");
+    updateSettings() {
+        this.asciiOutput.style.color = globalSettings.asciiFontColor;
+        this.asciiBackground.style.backgroundColor = globalSettings.asciiBackgroundColor;
+        this.asciiBackground.style.opacity = globalSettings.asciiBackgroundOpacity;
+        this.asciiOutput.style.fontFamily = globalSettings.fontFamily;
+        this.media.style.display = globalSettings.showMedia ? 'block' : 'none';
+        if(this.isVideo) {
+            this.media.playbackRate = globalSettings.videoSpeed;
+            this.media.loop = globalSettings.loopMedia;
         }
-      );
+    }
 
-      $(".next").hover(
-        function () {
-          // on hover
-          $(".right-arrow").css("opacity", "1");
-        },
-        function () {
-          // on hover out
-          $(".right-arrow").css("opacity", "0");
+    resizeContainer() {
+        this.container.style.width = `${globalSettings.containerWidth}px`;
+        this.container.style.height = `${globalSettings.containerHeight}px`;
+        const baseSize = MediaASCII.lerp(globalSettings.fontSizeMin, globalSettings.fontSizeMax, this.getScrollProgress());
+        const mediaRatio = this.getAspectRatio();
+        const containerRatio = globalSettings.containerWidth / globalSettings.containerHeight;
+        this.currentSettings.fontSize = mediaRatio > containerRatio 
+            ? baseSize * (globalSettings.containerHeight / 600)
+            : baseSize * (globalSettings.containerWidth / 800);
+        this.asciiOutput.style.fontSize = `${this.currentSettings.fontSize}px`;
+    }
+
+    getScrollProgress() {
+        const rect = this.container.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const elementCenterY = rect.top + (rect.height / 2);
+        return Math.min(1, Math.max(0, elementCenterY / (viewportHeight * 0.8)));
+    }
+
+    getAspectRatio() {
+        return this.isVideo 
+            ? this.media.videoWidth / this.media.videoHeight 
+            : this.media.naturalWidth / this.media.naturalHeight;
+    }
+
+    renderFrame() {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const [width, height] = [this.container.offsetWidth, this.container.offsetHeight];
+        canvas.width = width;
+        canvas.height = height;
+
+        const mediaRatio = this.getAspectRatio();
+        const containerRatio = width / height;
+        let [dw, dh, ox, oy] = containerRatio > mediaRatio 
+            ? [width, width/mediaRatio, 0, (height - width/mediaRatio)/2]
+            : [height*mediaRatio, height, (width - height*mediaRatio)/2, 0];
+
+        ctx.drawImage(this.media, ox, oy, dw, dh);
+        let imageData = ctx.getImageData(0, 0, width, height);
+        let pixels = imageData.data;
+
+        if(globalSettings.invert) {
+            for(let i=0; i<pixels.length; i+=4) {
+                pixels[i] = 255 - pixels[i];
+                pixels[i+1] = 255 - pixels[i+1];
+                pixels[i+2] = 255 - pixels[i+2];
+            }
         }
-      );
+
+        const charW = this.currentSettings.fontSize * 0.6;
+        const charH = this.currentSettings.fontSize;
+        const columns = Math.floor(width / charW);
+        const rows = Math.floor(height / charH);
+        let ascii = '';
+        
+        for(let y=0; y<rows; y++) {
+            for(let x=0; x<columns; x++) {
+                const pixelX = Math.floor(x * charW);
+                const pixelY = Math.floor(y * charH);
+                const i = (pixelY * width + pixelX) * 4;
+                
+                let r = pixels[i];
+                let g = pixels[i+1];
+                let b = pixels[i+2];
+                
+                // Apply contrast and brightness
+                r = Math.min(255, Math.max(0, Math.round(
+                    ((r / 255 - 0.5) * this.currentSettings.contrast + 0.5 + this.currentSettings.brightness) * 255
+                )));
+                g = Math.min(255, Math.max(0, Math.round(
+                    ((g / 255 - 0.5) * this.currentSettings.contrast + 0.5 + this.currentSettings.brightness) * 255
+                )));
+                b = Math.min(255, Math.max(0, Math.round(
+                    ((b / 255 - 0.5) * this.currentSettings.contrast + 0.5 + this.currentSettings.brightness) * 255
+                )));
+
+                // Apply color palette
+                if(globalSettings.colorPalette !== 'Full Color' && colorPalettes[globalSettings.colorPalette]) {
+                    const paletteColor = this.getClosestColor(r, g, b);
+                    [r, g, b] = paletteColor;
+                }
+
+                // Calculate brightness and select character
+                const brightness = (r + g + b) / 3;
+                const charIndex = Math.min(
+                    globalSettings.charSet.length - 1,
+                    Math.max(0, Math.floor((brightness / 255) * globalSettings.charSet.length))
+                );
+                const char = globalSettings.charSet[charIndex] || '░';
+                
+                // Build ASCII output
+                if(globalSettings.color) {
+                    ascii += `<span style="color:rgb(${r},${g},${b})">${char}</span>`;
+                } else {
+                    ascii += char;
+                }
+            }
+            ascii += '\n';
+        }
+        this.asciiOutput.innerHTML = ascii;
+    }
+
+    getClosestColor(r, g, b) {
+        const palette = colorPalettes[globalSettings.colorPalette];
+        if(!palette) return [r, g, b];
+        
+        let closest = palette[0];
+        let minDistance = Infinity;
+        
+        for(const color of palette) {
+            const distance = Math.sqrt(
+                Math.pow(r - color[0], 2) +
+                Math.pow(g - color[1], 2) +
+                Math.pow(b - color[2], 2)
+            );
+            if(distance < minDistance) {
+                minDistance = distance;
+                closest = color;
+            }
+        }
+        return closest;
+    }
+
+    static lerp(a, b, t) { return a + (b - a) * t; }
+    static throttle(fn, wait) {
+        let last = 0;
+        return (...args) => {
+            const now = Date.now();
+            if(now - last >= wait) {
+                fn(...args);
+                last = now;
+            }
+        };
+    }
+}
+
+/********************
+ * GUI SETUP        *
+ ********************/
+const gui = new dat.GUI({ autoPlace: false });
+document.getElementById('gui-container').appendChild(gui.domElement);
+
+// Preset controller
+const presetController = gui.add(globalSettings, 'preset', Object.keys(presets))
+    .name('Preset')
+    .onChange(preset => {
+        Object.assign(globalSettings, presets[preset]);
+        gui.__controllers.forEach(controller => controller.updateDisplay());
+        MediaASCII.instances.forEach(instance => {
+            instance.updateSettings();
+            instance.resizeContainer();
+            instance.renderFrame();
+        });
     });
 
-  </script>
-</body>
+function createController(parent, obj, prop, ...args) {
+    const c = parent.add(obj, prop, ...args);
+    c.onChange(() => MediaASCII.instances.forEach(i => {
+        if(['containerWidth','containerHeight'].includes(prop)) i.resizeContainer();
+        i.updateSettings();
+        if(i.isVideo && !i.media.paused) return;
+        i.renderFrame();
+    }));
+    return c;
+}
 
+// Scroll Behavior
+const scrollFolder = gui.addFolder('Scroll Behavior');
+createController(scrollFolder, globalSettings, 'scrollMapping', globalSettings.scrollMappingModes);
+scrollFolder.open();
+
+// Range Controls
+const rangeFolder = gui.addFolder('Scroll Ranges');
+createController(rangeFolder, globalSettings, 'fontSizeMin', 1, 20);
+createController(rangeFolder, globalSettings, 'fontSizeMax', 1, 20);
+createController(rangeFolder, globalSettings, 'contrastMin', 0, 2);
+createController(rangeFolder, globalSettings, 'contrastMax', 0, 2);
+createController(rangeFolder, globalSettings, 'brightnessMin', -1, 1);
+createController(rangeFolder, globalSettings, 'brightnessMax', -1, 1);
+rangeFolder.open();
+
+// Style Settings
+const styleFolder = gui.addFolder('Style Settings');
+createController(styleFolder, globalSettings, 'charSet');
+createController(styleFolder, globalSettings, 'color');
+createController(styleFolder, globalSettings, 'colorPalette', Object.keys(colorPalettes));
+createController(styleFolder, globalSettings, 'fontFamily', fontOptions);
+createController(styleFolder, globalSettings, 'asciiFontColor');
+createController(styleFolder, globalSettings, 'asciiBackgroundColor');
+createController(styleFolder, globalSettings, 'asciiBackgroundOpacity', 0, 1);
+styleFolder.open();
+
+// Media Settings
+const mediaFolder = gui.addFolder('Media Settings');
+createController(mediaFolder, globalSettings, 'showMedia');
+createController(mediaFolder, globalSettings, 'containerWidth', 100, 1920);
+createController(mediaFolder, globalSettings, 'containerHeight', 100, 1080);
+createController(mediaFolder, globalSettings, 'invert');
+createController(mediaFolder, globalSettings, 'videoSpeed', 0.1, 2);
+createController(mediaFolder, globalSettings, 'loopMedia');
+mediaFolder.open();
+
+// Initialize instances
+document.querySelectorAll('.media-ascii').forEach(el => new MediaASCII(el));
+
+// [Include helper functions from Code 2]
+    </script>
+</body>
 </html>
